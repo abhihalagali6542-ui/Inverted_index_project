@@ -9,19 +9,20 @@ int main(int argc,char *argv[])
 
     validate_arguments(argv,&files);
 
-    printf("1. Create Database\n2. Display Database\n3. Search Database\n4. Update Database\n5. Save Database\n6. Exit\n");
+    printf("\n1. Create Database\n2. Display Database\n3. Search Database\n4. Update Database\n5. Save Database\n6. Exit\n");
     
     while(1)
     {
-        printf("Enter your choice: ");
+        printf("\nEnter your choice: ");
         scanf("%d",&choice);
         switch(choice)
         {
             case 1:
                 Create_Database(files,arr);
+                printf("[ SUCCESS ] Database created\n");
             break;
             case 2:
-                Display_Database();
+                Display_Database(arr);
             break;
             case 3:
                 printf("Enter word you want to search: ");
@@ -32,13 +33,14 @@ int main(int argc,char *argv[])
                 Update_Database();
             break;
             case 5:
-                Save_Database();
+                Save_Database(arr);
             break;
             case 6:
                 return SUCCESS;
             break;
             default:
-                printf("Invalid choice! Re-try:\n");
+                printf("[ ERROR ] Invalid choice! Re-try:\n");
         }
     }
+    return SUCCESS;
 }

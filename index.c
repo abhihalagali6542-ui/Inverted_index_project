@@ -9,7 +9,7 @@ void display_file(file_t *head)
         printf("List is empty\n");
         return;
     }
-    printf("head -> ");
+    printf("\nhead -> ");
     while(head!=NULL)
     {
         printf("%s -> ",head->fname);
@@ -27,7 +27,7 @@ int validate_arguments(char *argv[],file_t **files)
         char *dot=strrchr(argv[i],'.');
         if(strcmp(dot,".txt")!=0)
         {
-            printf("ERROR: %s file should be \".txt\" type\n",argv[i]);
+            printf("[ ERROR ] %s file should be \".txt\" type\n",argv[i]);
             continue;
         }
 
@@ -36,17 +36,17 @@ int validate_arguments(char *argv[],file_t **files)
         if(fptr == NULL)
         {
             fclose(fptr);
-            printf("ERROR: Unable to open %s file\n",argv[i]);
+            printf("[ ERROR ] Unable to open %s file\n",argv[i]);
             continue;
         }
         if(fgetc(fptr)==EOF)
         {
-            printf("ERROR: %s is an empty file\n",argv[i]);
+            printf("[ ERROR ] %s is an empty file\n",argv[i]);
             continue;
         }
         if(isduplicate_file(argv[i], *files)==SUCCESS)
         {
-            printf("ERROR: File %s is already Exists\n",argv[i]);
+            printf("[ ERROR ] File %s is already Exists\n",argv[i]);
             continue;
         }
 
@@ -66,7 +66,7 @@ int Create_Database(file_t *files, mainnode_t *arr[])
         FILE *fptr = fopen(files->fname,"r");
         if(fptr == NULL)
         {
-            printf("ERROR: Unable to open %s file\n",files->fname);
+            printf("[ ERROR ] Unable to open %s file\n",files->fname);
             files = files->link;
             continue;
         }
@@ -82,9 +82,30 @@ int Create_Database(file_t *files, mainnode_t *arr[])
 
 //-------------------------------------------------------------------------------------------------//
 
-int Display_Database()
+int Display_Database (mainnode_t *arr[])
 {
+    for(int i=0;i<27;i++)
+    {
+        if(arr[i] == NULL)
+            continue;
 
+        mainnode_t *M_temp = arr[i];
+        while(M_temp!=NULL)
+        {
+            printf("%d\t%s\t%d\t",i,M_temp->word,M_temp->file_count);
+            if(M_temp->sub_link!=NULL)
+            {
+                subnode_t *S_temp = M_temp->sub_link;
+                while(S_temp!=NULL)
+                {
+                    printf("%s\t%d\t",S_temp->file_name,S_temp->word_count);
+                    S_temp = S_temp->link;
+                }
+                printf("\n");
+            }
+            M_temp = M_temp->link;
+        }
+    }
 }
 
 //-------------------------------------------------------------------------------------------------//
@@ -117,8 +138,10 @@ int Search_Database(char *word, mainnode_t *arr[])
                 subnode_t *S_temp = M_temp->sub_link;
                 while(S_temp!=NULL)
                 {
-                    printf("In %s: %d times\n",S_temp->file_name,S_temp->word_count);
+                    printf("In %s: %d times",S_temp->file_name,S_temp->word_count);
                     S_temp = S_temp->link;
+                    if(S_temp!=NULL)
+                        printf("\n");
                 }
             }
         }
@@ -138,9 +161,39 @@ int Update_Database()
 
 //-------------------------------------------------------------------------------------------------//
 
-int Save_Database()
+int Save_Database(mainnode_t *arr[])
 {
+    FILE *fptr = fopen("Database.csv","w+");
+    if(fptr == NULL)
+    {
+        printf("[ ERROR ] Unable to open Database.csv file\n");
+        return FAILURE;
+    }
 
+    for(int i=0;i<27;i++)
+    {
+        if(arr[i] == NULL)
+            continue;
+
+        mainnode_t *M_temp = arr[i];
+        while(M_temp!=NULL)
+        {
+            fprintf(fptr,"#%d;%s;%d;",i,M_temp->word,M_temp->file_count);
+            if(M_temp->sub_link!=NULL)
+            {
+                subnode_t *S_temp = M_temp->sub_link;
+                while(S_temp!=NULL)
+                {
+                    fprintf(fptr,"%s;%d;",S_temp->file_name,S_temp->word_count);
+                    S_temp = S_temp->link;
+                }
+                fprintf(fptr,"#\n");
+            }
+            M_temp = M_temp->link;
+        }
+    }
+    fclose(fptr);
+    return SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------//
