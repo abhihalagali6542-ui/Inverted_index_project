@@ -58,9 +58,26 @@ int validate_arguments(char *argv[],file_t **files)
 
 //-------------------------------------------------------------------------------------------------//
 
-int creat_database()
+int Create_Database(file_t *files, mainnode_t *arr[])
 {
-
+    char word[size];
+    while(files!=NULL)
+    {
+        FILE *fptr = fopen(files->fname,"r");
+        if(fptr == NULL)
+        {
+            printf("ERROR: Unable to open %s file\n",files->fname);
+            files = files->link;
+            continue;
+        }
+        while(fscanf(fptr,"%s",word) != EOF)
+        {
+            insert_word(files->fname,word,arr);
+        }
+        fclose(fptr);
+        files = files->link;
+    }
+    return SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------//
@@ -72,8 +89,43 @@ int Display_Database()
 
 //-------------------------------------------------------------------------------------------------//
 
-int Search_Database()
+int Search_Database(char *word, mainnode_t *arr[])
 {
+    int index;
+
+    if(isupper(word[0]))
+        index = word[0] - 'A';
+    else if(islower(word[0]))
+        index = word[0] - 'a';
+    else
+        index = 26;
+
+    if(arr[index] == NULL)
+    {
+        printf("%s not found\n",word);
+        return FAILURE;
+    }
+    mainnode_t *M_temp = arr[index];
+
+    while(M_temp!=NULL)
+    {
+        if(strcmp(M_temp->word,word) == 0)
+        {
+            printf("\nWord %s is present in %d files\n",word,M_temp->file_count);
+            if(M_temp->sub_link!=NULL)
+            {
+                subnode_t *S_temp = M_temp->sub_link;
+                while(S_temp!=NULL)
+                {
+                    printf("In %s: %d times\n",S_temp->file_name,S_temp->word_count);
+                    S_temp = S_temp->link;
+                }
+            }
+        }
+        M_temp = M_temp->link;
+    }
+    printf("\n");
+    
 
 }
 
