@@ -1,5 +1,74 @@
 #include "index.h"
 
+
+int menu(file_t **files, mainnode_t *arr[])
+{
+    int choice;
+    char word[FILE_SIZE];
+    short create_flag = 0,update_flag = 0;
+
+    printf("\n1. Create Database\n2. Display Database\n3. Search Database\n4. Update Database\n5. Save Database\n6. Exit\n");
+    
+    while(1)
+    {
+        printf("\nEnter your choice: ");
+        scanf("%d",&choice);
+        switch(choice)
+        {
+            case 1:
+                if(create_flag == 0)
+                {
+                    Create_Database(*files,arr);
+                    printf("\n[ SUCCESS ] Database created\n");
+                    create_flag = 1;
+                }
+                else
+                    printf("\n[ FAILURE ] Database already created\n");
+            break;
+            case 2:
+                Display_Database(arr);
+            break;
+            case 3:
+                printf("Enter word you want to search: ");
+                scanf("%s",word);
+                Search_Database(word, arr);
+            break;
+            case 4:
+                if(update_flag == 0)
+                {
+                    if(create_flag == 1)
+                    {
+                        printf("\n[ FAILURE ] Database update is not allowed after database creation.\n");
+                    }
+                    else
+                    {
+                        while(Update_Database(files,arr)==FAILURE)
+                        {
+                            printf("[ INFO ] Re-enter valid File\n");
+                        }
+                            printf("\n[ SUCCESS ] Database updated\n");
+                            update_flag = 1;
+                    }
+                }
+                else
+                {
+                    printf("\n[ FAILURE ] Database already updated\n");
+                }
+            break;
+            case 5:
+                if(Save_Database(arr)==SUCCESS)
+                    printf("\n[ SUCCESS ] Database saved\n");
+            break;
+            case 6:
+                printf("\nExiting...\n");
+                return SUCCESS;
+            break;
+            default:
+                printf("\n[ ERROR ] Invalid choice! Re-try:\n");
+        }
+    }
+}
+
 //-------------------------------------------------------------------------------------------------//
 
 void display_file(file_t *head)
@@ -28,7 +97,7 @@ int validate_update_file(char *fname)
 
     if(dot == NULL || strcmp(dot,".txt")!=0)
     {
-        printf("[ ERROR ] Invalid file format. Only '.txt' files are allowed.\n");
+        printf("\n[ ERROR ] Invalid file format. Only '.txt' files are allowed.\n");
         return FAILURE;
     }
 
@@ -37,13 +106,13 @@ int validate_update_file(char *fname)
     if(fptr == NULL)
     {
         fclose(fptr);
-        printf("[ ERROR ] Unable to open %s file\n",fname);
+        printf("\n[ ERROR ] Unable to open %s file\n",fname);
         return FAILURE;
     }
     if(fgetc(fptr)==EOF)
     {
         fclose(fptr);
-        printf("[ ERROR ] backup file %s is an empty file\n",fname);
+        printf("\n[ ERROR ] backup file %s is an empty file\n",fname);
         return FAILURE;
     }
         
@@ -59,9 +128,9 @@ int validate_update_file(char *fname)
         
     if(start != '#' || end != '#')
     {
-        printf("start char: %c\n end char: %c\n",start,end);
+        // printf("start char: %c\n end char: %c\n",start,end);
         fclose(fptr);
-        printf("[ ERROR ] Backup file '%s' has an invalid format: Both the first and last characters must be '#'.\n", fname);
+        printf("\n[ ERROR ] Backup file '%s' has an invalid format: Both the first and last characters must be '#'\n", fname);
         return FAILURE;
     }
 
@@ -71,14 +140,14 @@ int validate_update_file(char *fname)
 
 //-------------------------------------------------------------------------------------------------//
 
-int validate_arguments(char *argv[],file_t **files)
+void validate_arguments(char *argv[],file_t **files)
 {
     for(int i=1;argv[i]!=0;i++)
     {
         char *dot=strrchr(argv[i],'.');
         if(dot == NULL || strcmp(dot,".txt")!=0)
         {
-            printf("[ ERROR ] %s file should be \".txt\" type\n",argv[i]);
+            printf("\n[ ERROR ] %s file should be \".txt\" type\n",argv[i]);
             continue;
         }
 
@@ -87,17 +156,17 @@ int validate_arguments(char *argv[],file_t **files)
         if(fptr == NULL)
         {
             fclose(fptr);
-            printf("[ ERROR ] Unable to open %s file\n",argv[i]);
+            printf("\n[ ERROR ] Unable to open %s file\n",argv[i]);
             continue;
         }
         if(fgetc(fptr)==EOF)
         {
-            printf("[ ERROR ] %s is an empty file\n",argv[i]);
+            printf("\n[ ERROR ] %s is an empty file\n",argv[i]);
             continue;
         }
         if(isduplicate_file(argv[i], *files)==SUCCESS)
         {
-            printf("[ ERROR ] File %s is already Exists\n",argv[i]);
+            printf("\n[ ERROR ] File %s is already Exists\n",argv[i]);
             continue;
         }
 
@@ -111,13 +180,13 @@ int validate_arguments(char *argv[],file_t **files)
 
 int Create_Database(file_t *files, mainnode_t *arr[])
 {
-    char word[size];
+    char word[FILE_SIZE];
     while(files!=NULL)
     {
         FILE *fptr = fopen(files->fname,"r");
         if(fptr == NULL)
         {
-            printf("[ ERROR ] Unable to open %s file\n",files->fname);
+            printf("\n[ ERROR ] Unable to open %s file\n",files->fname);
             files = files->link;
             continue;
         }
@@ -135,6 +204,8 @@ int Create_Database(file_t *files, mainnode_t *arr[])
 
 int Display_Database (mainnode_t *arr[])
 {
+    int empty=0;
+
     for(int i=0;i<27;i++)
     {
         if(arr[i] == NULL)
@@ -143,7 +214,14 @@ int Display_Database (mainnode_t *arr[])
         mainnode_t *M_temp = arr[i];
         while(M_temp!=NULL)
         {
-            printf("%d\t%s\t%d\t",i,M_temp->word,M_temp->file_count);
+            if(empty == 0)
+            {
+                printf("\n---------------------------------------------------------------------------------\n");
+                printf("Index\t|\tInformation");
+                printf("\n---------------------------------------------------------------------------------\n");
+                empty = 1;
+            }
+            printf("  %d\t|\t%s\t%d\t",i,M_temp->word,M_temp->file_count);
             if(M_temp->sub_link!=NULL)
             {
                 subnode_t *S_temp = M_temp->sub_link;
@@ -157,6 +235,15 @@ int Display_Database (mainnode_t *arr[])
             M_temp = M_temp->link;
         }
     }
+
+    if(empty == 0)
+    {
+       printf("\n[ INFO ] Database is empty. No records are available to display\n");
+        return FAILURE;
+    }
+    printf("---------------------------------------------------------------------------------\n");
+
+    return SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------//
@@ -174,7 +261,7 @@ int Search_Database(char *word, mainnode_t *arr[])
 
     if(arr[index] == NULL)
     {
-        printf("%s not found\n",word);
+        printf("\n[ FAILURE ] Word %s not found\n",word);
         return FAILURE;
     }
     mainnode_t *M_temp = arr[index];
@@ -202,22 +289,21 @@ int Search_Database(char *word, mainnode_t *arr[])
     
     if(Found == 0)
     {
-        printf("[ FAILURE ] Word '%s' was not found in any of the files.\n", word);
+        printf("\n[ FAILURE ] Word '%s' was not found in any of the files.\n", word);
         return FAILURE;
     }
     printf("\n");
-    
-
+    return SUCCESS;
 }
 
 //-------------------------------------------------------------------------------------------------//
 
-int Update_Database(file_t *files, mainnode_t *arr[])
+int Update_Database(file_t **files, mainnode_t *arr[])
 {
-    char fname[size],word[size];
+    char fname[FILE_SIZE],word[FILE_SIZE];
     int index,file_count,word_count;
 
-    printf("Enter the backup file name to update the database: ");
+    printf("\nEnter the backup file name to update the database: ");
     scanf("%s",fname);
     if(validate_update_file(fname) == FAILURE)
     {
@@ -228,7 +314,7 @@ int Update_Database(file_t *files, mainnode_t *arr[])
     if(fptr == NULL)
     {
         fclose(fptr);
-        printf("[ ERROR ] Unable to open %s file\n",fname);
+        printf("\n[ ERROR ] Unable to open %s file\n",fname);
         return FAILURE;
     }
 
@@ -236,14 +322,15 @@ int Update_Database(file_t *files, mainnode_t *arr[])
     {
         mainnode_t *M_node = update_mainnode(arr,index,word,file_count);
         // printf("Word: %s | File count: %d\n", word, file_count);
-        int i = 0;
-        char filename[size];
+        char filename[FILE_SIZE];
         int word_count;
         
         for(int i = 0; i < file_count; i++)
         {
             if(fscanf(fptr, "%[^;];%d;", filename, &word_count) != 2)
                 break;
+
+            remove_duplicate_file(files,filename);
 
             subnode_t *S_new = update_subnode(arr, index, filename, word_count);
 
@@ -257,9 +344,6 @@ int Update_Database(file_t *files, mainnode_t *arr[])
                 S_temp->link = S_new;
             }
         }
-        // int c = fgetc(fptr);
-        // printf("next char: %d\n", c);
-        // ungetc(c, fptr);
         fscanf(fptr, "#");
     }
     return SUCCESS;
@@ -269,21 +353,22 @@ int Update_Database(file_t *files, mainnode_t *arr[])
 
 int Save_Database(mainnode_t *arr[])
 {
-    char fname[size];
-    printf("Enter the backup file name to save the database: ");
+    int empty=0;
+    char fname[FILE_SIZE];
+    printf("\nEnter the backup file name to save the database: ");
     scanf("%s",fname);
 
     char *dot=strrchr(fname,'.');
     if(dot == NULL || strcmp(dot,".txt")!=0)
     {
-        printf("[ ERROR ] Invalid file format. Only '.txt' files are allowed.\n");
+        printf("\n[ ERROR ] Invalid file format. Only '.txt' files are allowed.\n");
         return FAILURE;
     }
 
     FILE *fptr = fopen(fname,"w+");
     if(fptr == NULL)
     {
-        printf("[ ERROR ] Unable to open Database.csv file\n");
+        printf("\n[ ERROR ] Unable to open Database.csv file\n");
         return FAILURE;
     }
 
@@ -295,6 +380,7 @@ int Save_Database(mainnode_t *arr[])
         mainnode_t *M_temp = arr[i];
         while(M_temp!=NULL)
         {
+            empty = 1;
             fprintf(fptr,"#%d;%s;%d;",i,M_temp->word,M_temp->file_count);
             if(M_temp->sub_link!=NULL)
             {
@@ -310,6 +396,12 @@ int Save_Database(mainnode_t *arr[])
         }
     }
     fclose(fptr);
+    if(empty == 0)
+    {
+        remove(fname);
+        printf("\n[ INFO ] Database is empty. No records are available to save\n");
+        return FAILURE;
+    }
     return SUCCESS;
 }
 

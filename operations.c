@@ -43,6 +43,30 @@ int isduplicate_file(char *fname, file_t *files)
 
 //-------------------------------------------------------------------------------------------------//
 
+int remove_duplicate_file(file_t **files, char *fname)
+{
+    file_t *temp = *files;
+    file_t *prev = NULL;
+
+    while(temp!=NULL)
+    {
+        if(strcmp(temp->fname,fname) == 0)
+        {
+            if(prev == NULL)
+                *files = temp->link;
+            else
+                prev->link = temp->link;
+            free(temp);
+            return SUCCESS;
+        }
+        prev = temp;
+        temp = temp->link;
+    }
+    return FAILURE;
+}
+
+//-------------------------------------------------------------------------------------------------//
+
 int insert_word(char *fname, char *word, mainnode_t *arr[])
 {
     int index;
