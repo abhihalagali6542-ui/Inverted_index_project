@@ -121,3 +121,44 @@ int insert_word(char *fname, char *word, mainnode_t *arr[])
 }
 
 //-------------------------------------------------------------------------------------------------//
+
+mainnode_t * update_mainnode(mainnode_t *arr[],int index,char *word,int file_count)
+{
+    mainnode_t *M_newnode = malloc(sizeof(mainnode_t));
+    strcpy(M_newnode->word,word);
+    M_newnode->file_count = file_count;
+    M_newnode->sub_link = NULL;
+    M_newnode->link = NULL;
+
+    if(arr[index] == NULL)
+    {
+        arr[index] = M_newnode;
+        return M_newnode;
+    }
+
+    mainnode_t *M_temp = arr[index];
+    mainnode_t *M_prev = NULL;
+
+    while(M_temp !=NULL)
+    {
+        M_prev = M_temp;
+        M_temp = M_temp->link;
+    }
+
+    M_prev->link = M_newnode;
+    return M_newnode;
+}
+
+//-------------------------------------------------------------------------------------------------//
+
+subnode_t *update_subnode(mainnode_t *arr[],int index,char *filename,int word_count)
+{
+    subnode_t *S_newnode = malloc(sizeof(subnode_t));
+    strcpy(S_newnode->file_name,filename);
+    S_newnode->word_count = word_count;
+    S_newnode->link = NULL;
+
+    return S_newnode;
+}
+
+//-------------------------------------------------------------------------------------------------//
